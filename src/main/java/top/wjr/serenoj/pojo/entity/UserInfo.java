@@ -40,7 +40,7 @@ public class UserInfo implements Serializable {
     @TableField(updateStrategy = FieldStrategy.IGNORED)
     private String realname;
 
-    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    @TableField(exist = false)
     private String cfUsername;
 
     @TableField(updateStrategy = FieldStrategy.IGNORED)
