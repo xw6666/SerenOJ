@@ -1,0 +1,71 @@
+package top.wjr.serenoj.pojo.entity;
+
+import com.baomidou.mybatisplus.annotation.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
+
+import java.io.Serializable;
+import java.util.Date;
+
+@Data
+@EqualsAndHashCode(callSuper = false)
+@Accessors(chain = true)
+public class UserInfo implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    @TableId(value = "uuid", type = IdType.ASSIGN_UUID)
+    private String uuid;
+
+    private String username;
+
+    private String password;
+
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    private String nickname;
+
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    private String school;
+
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    private String course;
+
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    private String number;
+
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    private String gender;
+
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    private String realname;
+
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    private String cfUsername;
+
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    private String github;
+
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    private String blog;
+
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    private String email;
+
+    private String avatar;
+
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    private String signature;
+
+    private String titleName;
+
+    private String titleColor;
+
+    private int status;
+
+    @TableField(fill = FieldFill.INSERT)
+    private Date gmtCreate;
+
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private Date gmtModified;
+}
