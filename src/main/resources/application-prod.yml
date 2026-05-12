@@ -1,0 +1,29 @@
+# 生产环境配置 (覆盖 application.yml 中的敏感信息)
+spring:
+  datasource:
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+    druid:
+      initial-size: 10
+      max-active: 50
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+  mail:
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl  # 生产环境关闭SQL日志
+
+serenoj:
+  jwt:
+    secret: ${JWT_SECRET:change-me-in-production}
+  web:
+    base-url: ${BASE_URL:https://your-domain.com}
+    register: ${REGISTER_OPEN:true}

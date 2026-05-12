@@ -1,0 +1,87 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  profiles:
+    active: dev
+  application:
+    name: serenoj
+  datasource:
+    url: jdbc:mysql://localhost:3306/serenoj?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      max-wait: 60000
+      time-between-eviction-runs-millis: 60000
+      min-evictable-idle-time-millis: 300000
+      validation-query: SELECT 1
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+  redis:
+    host: localhost
+    port: 6379
+    password: ${REDIS_PASSWORD:}
+    timeout: 5000ms
+    jedis:
+      pool:
+        max-active: 20
+        max-idle: 10
+        min-idle: 5
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    default-property-inclusion: non_null
+  mail:
+    host: smtp.qq.com
+    port: 465
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    protocol: smtps
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+  servlet:
+    multipart:
+      max-file-size: 512MB
+      max-request-size: 512MB
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+
+# SerenOJ 自定义配置
+serenoj:
+  mode: full                              # full(全功能) | judge(纯判题)
+  jwt:
+    secret: ${JWT_SECRET:serenoj-jwt-secret-key-2024}
+    expire: 86400                         # token过期时间(秒) 24h
+    refresh-expire: 43200                 # token刷新时间(秒) 12h
+    header: Authorization
+  judge:
+    token: serenoj-judge-token             # 判题机通信token(预留)
+    max-task: 4                           # 最大并发判题数
+    sandbox-url: http://localhost:5050     # Go-Judge 沙箱地址
+  web:
+    name: SerenOJ
+    short-name: SOJ
+    base-url: http://localhost:8080
+    register: true                        # 是否开放注册
+    description: A Simple Online Judge
+  submit:
+    interval: 8                           # 提交间隔(秒)

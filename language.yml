@@ -1,0 +1,201 @@
+# ============================================================
+# SerenOJ 编程语言运行时配置
+# 该文件定义编译命令 / 运行命令 / 资源限制
+# 由 LanguageConfigLoader 在启动时加载为 Map<String, LanguageConfig>
+# ============================================================
+
+# ---- 用户语言 (9种) ----
+
+---
+language: C
+src_path: main.c
+exe_path: main
+compile:
+  env: default
+  command: /usr/bin/gcc -DONLINE_JUDGE -O2 -w -fmax-errors=1 -std=c11 {src_path} -lm -o {exe_path}
+  maxCpuTime: 5s
+  maxRealTime: 10s
+  maxMemory: 256mb
+run:
+  env: default
+  command: /w/{exe_path}
+
+---
+language: C++
+src_path: main.cpp
+exe_path: main
+compile:
+  env: default
+  command: /usr/bin/g++ -DONLINE_JUDGE -O2 -w -fmax-errors=1 -std=c++14 {src_path} -lm -o {exe_path}
+  maxCpuTime: 10s
+  maxRealTime: 20s
+  maxMemory: 512mb
+run:
+  env: default
+  command: /w/{exe_path}
+
+---
+language: Java
+src_path: Main.java
+exe_path: Main.jar
+compile:
+  env: default
+  command: /bin/bash -c "javac -encoding utf-8 {src_path} && jar -cvf {exe_path} *.class"
+  maxCpuTime: 10s
+  maxRealTime: 20s
+  maxMemory: 512mb
+run:
+  env: default
+  command: /usr/bin/java -Dfile.encoding=UTF-8 -cp /w/{exe_path} Main
+
+---
+language: Go
+src_path: main.go
+exe_path: main
+compile:
+  env: golang_compile
+  command: /usr/bin/go build -o {exe_path} {src_path}
+  maxCpuTime: 5s
+  maxRealTime: 10s
+  maxMemory: 512mb
+run:
+  env: golang_run
+  command: /w/{exe_path}
+
+---
+language: C#
+src_path: Main.cs
+exe_path: main
+compile:
+  env: default
+  command: /usr/bin/mcs -optimize+ -out:{exe_path} {src_path}
+  maxCpuTime: 5s
+  maxRealTime: 10s
+  maxMemory: 512mb
+run:
+  env: default
+  command: /usr/bin/mono /w/{exe_path}
+
+---
+language: Python3
+src_path: main.py
+exe_path: __pycache__/main.cpython-37.pyc
+compile:
+  env: python3
+  command: /usr/bin/python3.7 -m py_compile /w/{src_path}
+  maxCpuTime: 5s
+  maxRealTime: 10s
+  maxMemory: 256mb
+run:
+  env: python3
+  command: /usr/bin/python3.7 /w/{exe_path}
+
+---
+language: JavaScript
+src_path: main.js
+exe_path: main.js
+run:
+  env: default
+  command: /usr/bin/node /w/{exe_path}
+
+---
+language: Rust
+src_path: main.rs
+exe_path: main
+compile:
+  env: default
+  command: /usr/bin/rustc -O -o {exe_path} {src_path}
+  maxCpuTime: 5s
+  maxRealTime: 10s
+  maxMemory: 512mb
+run:
+  env: default
+  command: /w/{exe_path}
+
+---
+language: PHP
+src_path: main.php
+exe_path: main.php
+run:
+  env: default
+  command: /usr/bin/php /w/{exe_path}
+
+# ---- 内部语言 (Special Judge / Interactive) ----
+
+---
+language: SPJ-C
+src_path: spj.c
+exe_path: spj
+compile:
+  env: default
+  command: /usr/bin/gcc -DONLINE_JUDGE -O2 -w -fmax-errors=3 -std=c11 {src_path} -lm -o {exe_path}
+  maxCpuTime: 10s
+  maxRealTime: 20s
+  maxMemory: 512mb
+run:
+  env: default
+  command: /w/{exe_path} {std_input} {user_output} {std_output}
+
+---
+language: SPJ-C++
+src_path: spj.cpp
+exe_path: spj
+compile:
+  env: default
+  command: /usr/bin/g++ -DONLINE_JUDGE -O2 -w -fmax-errors=3 -std=c++14 {src_path} -lm -o {exe_path}
+  maxCpuTime: 15s
+  maxRealTime: 30s
+  maxMemory: 512mb
+run:
+  env: default
+  command: /w/{exe_path} {std_input} {user_output} {std_output}
+
+---
+language: INTERACTIVE-C
+src_path: interactive.c
+exe_path: interactive
+compile:
+  env: default
+  command: /usr/bin/gcc -DONLINE_JUDGE -O2 -w -fmax-errors=3 -std=c11 {src_path} -lm -o {exe_path}
+  maxCpuTime: 10s
+  maxRealTime: 20s
+  maxMemory: 512mb
+run:
+  env: default
+  command: /w/{exe_path} {std_input} {user_output} {std_output}
+
+---
+language: INTERACTIVE-C++
+src_path: interactive.cpp
+exe_path: interactive
+compile:
+  env: default
+  command: /usr/bin/g++ -DONLINE_JUDGE -O2 -w -fmax-errors=3 -std=c++14 {src_path} -lm -o {exe_path}
+  maxCpuTime: 15s
+  maxRealTime: 30s
+  maxMemory: 512mb
+run:
+  env: default
+  command: /w/{exe_path} {std_input} {user_output} {std_output}
+
+# 环境变量定义
+env:
+  default:
+    - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    - LANG=en_US.UTF-8
+    - LC_ALL=en_US.UTF-8
+    - HOME=/tmp
+  python3:
+    - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    - LANG=en_US.UTF-8
+    - LC_ALL=en_US.UTF-8
+    - PYTHONIOENCODING=utf-8
+    - HOME=/tmp
+  golang_compile:
+    - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    - GOCACHE=/tmp/go-cache
+    - GOPATH=/tmp/go-path
+    - HOME=/tmp
+  golang_run:
+    - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    - HOME=/tmp
