@@ -29,11 +29,19 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Set;
 import java.util.UUID;
 
 @Component
 @Slf4j(topic = "serenoj")
 public class JwtFilter extends AuthenticatingFilter {
+
+    private static final String DEFAULT_AUTHORIZATION_HEADER = "Authorization";
+    private static final String BEARER_PREFIX = "Bearer ";
+    private static final Set<String> ANON_API_PATHS = Set.of(
+            "/api/login",
+            "/api/register"
+    );
 
     @Autowired
     private JwtUtils jwtUtils;
@@ -45,49 +53,37 @@ public class JwtFilter extends AuthenticatingFilter {
     protected boolean isAccessAllowed(ServletRequest request, ServletResponse response, Object mappedValue) {
         HttpServletRequest httpRequest = WebUtils.toHttp(request);
         WebUtils.saveRequest(httpRequest);
-        WebApplicationContext ctx = RequestContextUtils.findWebApplicationContext(httpRequest);
-        RequestMappingHandlerMapping mapping = ctx.getBean(
-                "requestMappingHandlerMapping", RequestMappingHandlerMapping.class);
-        try {
-            HandlerExecutionChain handler = mapping.getHandler(httpRequest);
-            HandlerMethod handlerClazz = (HandlerMethod) handler.getHandler();
-            AnonApi anonApi = ServiceContextUtils.getAnnotation(handlerClazz.getMethod(),
-                    handlerClazz.getBeanType(),
-                    AnonApi.class);
-            if (anonApi != null) {
-                String jwt = httpRequest.getHeader("Authorization");
-                if (StrUtil.isNotBlank(jwt)) {
-                    try {
-                        Claims claim = jwtUtils.getClaimByToken(jwt);
-                        if (claim == null || jwtUtils.isTokenExpired(claim.getExpiration())) {
-                            return true;
-                        }
-                        String userId = claim.getSubject();
-                        boolean hasToken = jwtUtils.hasToken(userId);
-                        if (!hasToken) {
-                            return true;
-                        }
-                        AccountProfile userRolesVo = (AccountProfile) SecurityUtils.getSubject().getPrincipal();
-                        if (userRolesVo == null) {
-                            JwtToken jwtToken = new JwtToken(jwt);
-                            SecurityUtils.getSubject().login(jwtToken);
-                        }
-                    } catch (Exception ignored) {
-                    }
-                }
-                return true;
-            } else {
-                return false;
-            }
-        } catch (Exception e) {
+        if (!isAnonApi(httpRequest)) {
+            return false;
+        }
+
+        String jwt = resolveToken(httpRequest);
+        if (StrUtil.isBlank(jwt)) {
             return true;
         }
+
+        try {
+            Claims claim = jwtUtils.getClaimByToken(jwt);
+            if (claim == null || jwtUtils.isTokenExpired(claim.getExpiration())) {
+                return true;
+            }
+            String userId = claim.getSubject();
+            if (!jwtUtils.hasToken(userId)) {
+                return true;
+            }
+            if (SecurityUtils.getSubject().getPrincipal() == null) {
+                SecurityUtils.getSubject().login(new JwtToken(jwt));
+            }
+        } catch (Exception e) {
+            log.debug("Skip optional jwt login for anon api: {}", httpRequest.getRequestURI(), e);
+        }
+        return true;
     }
 
     @Override
     protected AuthenticationToken createToken(ServletRequest servletRequest, ServletResponse servletResponse) throws Exception {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
-        String jwt = request.getHeader("Authorization");
+        String jwt = resolveToken(request);
         if (StrUtil.isBlank(jwt)) {
             return null;
         }
@@ -98,9 +94,10 @@ public class JwtFilter extends AuthenticatingFilter {
     @Override
     protected boolean onAccessDenied(ServletRequest servletRequest, ServletResponse servletResponse) throws Exception {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
-        String token = request.getHeader("Authorization");
+        String token = resolveToken(request);
         if (StrUtil.isBlank(token)) {
-            return true;
+            return this.onLoginFailure(null,
+                    new AuthenticationException("请先登录"), servletRequest, servletResponse);
         } else {
             Claims claim = jwtUtils.getClaimByToken(token);
             if (claim == null || jwtUtils.isTokenExpired(claim.getExpiration())) {
@@ -121,6 +118,59 @@ public class JwtFilter extends AuthenticatingFilter {
             }
         }
         return executeLogin(servletRequest, servletResponse);
+    }
+
+    private boolean isAnonApi(HttpServletRequest request) {
+        String requestUri = request.getRequestURI();
+        if (ANON_API_PATHS.contains(requestUri)) {
+            return true;
+        }
+
+        try {
+            WebApplicationContext ctx = RequestContextUtils.findWebApplicationContext(request);
+            if (ctx == null) {
+                log.warn("No WebApplicationContext found when resolving request: {}", requestUri);
+                return false;
+            }
+
+            RequestMappingHandlerMapping mapping = ctx.getBean(
+                    "requestMappingHandlerMapping", RequestMappingHandlerMapping.class);
+            HandlerExecutionChain handlerExecutionChain = mapping.getHandler(request);
+            if (handlerExecutionChain == null) {
+                return false;
+            }
+
+            Object handler = handlerExecutionChain.getHandler();
+            if (!(handler instanceof HandlerMethod)) {
+                return false;
+            }
+
+            HandlerMethod handlerMethod = (HandlerMethod) handler;
+            AnonApi anonApi = ServiceContextUtils.getAnnotation(handlerMethod.getMethod(),
+                    handlerMethod.getBeanType(),
+                    AnonApi.class);
+            return anonApi != null;
+        } catch (Exception e) {
+            log.warn("Failed to resolve handler for request: {}", requestUri, e);
+            return false;
+        }
+    }
+
+    private String resolveToken(HttpServletRequest request) {
+        String headerName = StrUtil.blankToDefault(jwtUtils.getHeader(), DEFAULT_AUTHORIZATION_HEADER);
+        String token = request.getHeader(headerName);
+        if (StrUtil.isBlank(token) && !DEFAULT_AUTHORIZATION_HEADER.equalsIgnoreCase(headerName)) {
+            token = request.getHeader(DEFAULT_AUTHORIZATION_HEADER);
+        }
+        if (StrUtil.isBlank(token)) {
+            return null;
+        }
+
+        token = token.trim();
+        if (StrUtil.startWithIgnoreCase(token, BEARER_PREFIX)) {
+            token = token.substring(BEARER_PREFIX.length()).trim();
+        }
+        return StrUtil.isBlank(token) ? null : token;
     }
 
     private void refreshToken(HttpServletRequest request, HttpServletResponse response, String userId) throws IOException {
