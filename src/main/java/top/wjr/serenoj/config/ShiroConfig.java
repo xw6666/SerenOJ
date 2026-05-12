@@ -11,6 +11,7 @@ import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import top.wjr.serenoj.shiro.AccountRealm;
@@ -35,6 +36,14 @@ public class ShiroConfig {
 
     @Value("${hoj.jwt.expire:86400}")
     private long expire;
+
+    @Bean
+    public FilterRegistrationBean<JwtFilter> defer(JwtFilter jwtFilter) {
+        FilterRegistrationBean<JwtFilter> registrationBean = new FilterRegistrationBean<>();
+        registrationBean.setFilter(jwtFilter);
+        registrationBean.setEnabled(false);
+        return registrationBean;
+    }
 
     @Bean
     public DefaultWebSecurityManager securityManager(AccountRealm accountRealm) {
