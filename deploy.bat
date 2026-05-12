@@ -18,9 +18,9 @@ if %errorlevel% neq 0 (
 
 echo.
 echo [2/4] Pulling code on server...
-ssh %SERVER% "cd %PROJECT_DIR% && git pull origin master"
+ssh %SERVER% "cd %PROJECT_DIR% && git fetch origin master && git reset --hard origin/master"
 if %errorlevel% neq 0 (
-    echo [ERROR] git pull failed
+    echo [ERROR] git sync failed
     pause
     exit /b %errorlevel%
 )
@@ -36,7 +36,7 @@ if %errorlevel% neq 0 (
 
 echo.
 echo [4/4] Kill old process and restart...
-ssh %SERVER% "pkill -f 'serenoj-1.0.0.jar' 2>/dev/null; pkill -f 'spring-boot:run' 2>/dev/null; sleep 1; cd %PROJECT_DIR% && nohup mvn spring-boot:run > /tmp/serenoj.log 2>&1 &"
+ssh %SERVER% "pkill -f '[s]erenoj-1.0.0.jar' 2>/dev/null || true; pkill -f '[s]pring-boot:run' 2>/dev/null || true; pkill -f '[t]op.wjr.serenoj.SerenOJApplication' 2>/dev/null || true; sleep 1; cd %PROJECT_DIR% && nohup mvn spring-boot:run > /tmp/serenoj.log 2>&1 < /dev/null &"
 
 echo.
 echo ============================================
