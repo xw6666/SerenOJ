@@ -6,6 +6,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import top.wjr.serenoj.shiro.ShiroConstant;
@@ -19,12 +20,16 @@ import java.util.Date;
 @ConfigurationProperties(prefix = "serenoj.jwt")
 public class JwtUtils {
 
+    @Value("${serenoj.jwt.secret:serenoj-jwt-secret-key-2024}")
     private String secret;
 
+    @Value("${serenoj.jwt.expire:86400}")
     private long expire;
 
+    @Value("${serenoj.jwt.header:Authorization}")
     private String header;
 
+    @Value("${serenoj.jwt.refresh-expire:43200}")
     private long checkRefreshExpire;
 
     @Autowired
