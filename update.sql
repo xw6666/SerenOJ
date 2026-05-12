@@ -1,0 +1,1 @@
+UPDATE serenoj.user_info SET password='ff9830c42660c1dd1942844f8069b74a' WHERE username='root';
