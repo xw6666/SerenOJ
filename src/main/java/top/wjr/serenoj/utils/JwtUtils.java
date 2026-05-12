@@ -21,16 +21,16 @@ import java.util.Date;
 public class JwtUtils {
 
     @Value("${serenoj.jwt.secret:serenoj-jwt-secret-key-2024}")
-    private String secret;
+    private String secret = "serenoj-jwt-secret-key-2024";
 
     @Value("${serenoj.jwt.expire:86400}")
-    private long expire;
+    private long expire = 86400;
 
     @Value("${serenoj.jwt.header:Authorization}")
-    private String header;
+    private String header = "Authorization";
 
     @Value("${serenoj.jwt.refresh-expire:43200}")
-    private long checkRefreshExpire;
+    private long checkRefreshExpire = 43200;
 
     @Autowired
     private RedisUtils redisUtils;
