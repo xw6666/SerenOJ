@@ -293,11 +293,54 @@ public class PassportManager {
     }
 
     public CommonResult<Void> applyResetPassword(ApplyResetPasswordDTO dto) {
-        return CommonResult.errorResponse("TODO: implement applyResetPassword");
+        String email = dto.getEmail();
+        if (!Validator.isEmail(email)) {
+            return CommonResult.errorResponse("邮箱格式错误");
+        }
+
+        UserInfo user = userInfoService.getOne(new QueryWrapper<UserInfo>().eq("email", email));
+        if (user == null) {
+            return CommonResult.errorResponse("邮箱未注册");
+        }
+
+        String limitKey = RedisKeyConstant.RESET_PASSWORD_LIMIT_PREFIX + email;
+        if (redisUtils.hasKey(limitKey)) {
+            return CommonResult.errorResponse("验证码发送过于频繁，请稍后再试");
+        }
+
+        String code = generateCode();
+
+        String codeKey = RedisKeyConstant.RESET_PASSWORD_CODE_PREFIX + email;
+        redisUtils.set(codeKey, code, resetCodeExpire);
+        redisUtils.set(limitKey, "1", sendInterval);
+        log.info("Reset password code generated. email={}, code={}, expire={}s", email, code, resetCodeExpire);
+
+        return CommonResult.successResponse("重置验证码已生成，请查看服务器日志");
     }
 
     public CommonResult<Void> resetPassword(ResetPasswordDTO dto) {
-        return CommonResult.errorResponse("TODO: implement resetPassword");
+        String username = dto.getUsername();
+        if (StrUtil.isBlank(username)) {
+            return CommonResult.errorResponse("用户名不能为空");
+        }
+
+        UserInfo user = userInfoService.getOne(new QueryWrapper<UserInfo>().eq("username", username));
+        if (user == null) {
+            return CommonResult.errorResponse("用户不存在");
+        }
+
+        String codeKey = RedisKeyConstant.RESET_PASSWORD_CODE_PREFIX + user.getEmail();
+        if (!verifyCode(codeKey, dto.getCode())) {
+            return CommonResult.errorResponse("验证码错误或已过期");
+        }
+
+        UpdateWrapper<UserInfo> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq("uuid", user.getUuid()).set("password", passwordEncoder.encode(dto.getPassword()));
+        userInfoService.update(updateWrapper);
+
+        redisUtils.del(codeKey);
+        jwtUtils.cleanToken(user.getUuid());
+        return CommonResult.successResponse("密码重置成功，请重新登录");
     }
 
     private AccountProfile getCurrentProfile() {
