@@ -18,6 +18,7 @@ target/
 Thumbs.db
 
 # Config (sensitive)
+application-dev.yml
 application-prod.yml.bak
 
 # Temp
