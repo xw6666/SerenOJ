@@ -1,6 +1,8 @@
 package top.wjr.serenoj.manager;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.lang.Validator;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -65,7 +67,7 @@ public class PassportManager {
         if (user.getStatus() == 1) {
             return CommonResult.errorResponse("该账户已被封禁，请联系管理员！");
         }
-        
+
         String jwt = jwtUtils.generateToken(user.getUuid());
         response.setHeader("Authorization", jwt);
         response.setHeader("Access-Control-Expose-Headers", "Authorization");
@@ -73,11 +75,11 @@ public class PassportManager {
         UserInfoVO userInfoVO = new UserInfoVO();
         BeanUtil.copyProperties(user, userInfoVO);
         userInfoVO.setUid(user.getUuid());
-        
+
         List<Role> roles = userRoleService.getRolesByUid(user.getUuid());
         List<String> roleList = roles.stream().map(Role::getRole).collect(Collectors.toList());
         userInfoVO.setRoleList(roleList);
-        
+
         return CommonResult.successResponse(userInfoVO, "登录成功");
     }
 
@@ -93,19 +95,19 @@ public class PassportManager {
         if (count > 0) {
             return CommonResult.errorResponse("用户名或邮箱已被注册！");
         }
-        
+
         UserInfo userInfo = new UserInfo();
         userInfo.setUsername(registerDto.getUsername());
         userInfo.setPassword(passwordEncoder.encode(registerDto.getPassword()));
         userInfo.setEmail(registerDto.getEmail());
         userInfo.setNickname(registerDto.getUsername());
         userInfoService.save(userInfo);
-        
+
         UserRole userRole = new UserRole();
         userRole.setUid(userInfo.getUuid());
         userRole.setRoleId(1002L); // 1002 is default_user
         userRoleService.save(userRole);
-        
+
         return CommonResult.successResponse("注册成功");
     }
 
@@ -114,7 +116,7 @@ public class PassportManager {
         if (userRolesVo == null) {
             return CommonResult.errorResponse("请先登录");
         }
-        
+
         UserInfo user = userInfoService.getById(userRolesVo.getUid());
         if (user == null) {
             return CommonResult.errorResponse("用户不存在");
@@ -123,14 +125,14 @@ public class PassportManager {
         UserInfoVO userInfoVO = new UserInfoVO();
         BeanUtil.copyProperties(user, userInfoVO);
         userInfoVO.setUid(user.getUuid());
-        
+
         List<Role> roles = userRoleService.getRolesByUid(user.getUuid());
         List<String> roleList = roles.stream().map(Role::getRole).collect(Collectors.toList());
         userInfoVO.setRoleList(roleList);
-        
+
         return CommonResult.successResponse(userInfoVO);
     }
-    
+
     public CommonResult<Void> logout() {
         AccountProfile userRolesVo = (AccountProfile) SecurityUtils.getSubject().getPrincipal();
         if (userRolesVo != null) {
@@ -160,7 +162,30 @@ public class PassportManager {
     }
 
     public CommonResult<CheckUsernameOrEmailVO> checkUsernameOrEmail(CheckUsernameOrEmailDTO dto) {
-        return CommonResult.errorResponse("TODO: implement checkUsernameOrEmail");
+        String username = dto.getUsername();
+        String email = dto.getEmail();
+
+        if (StrUtil.isBlank(username) && StrUtil.isBlank(email)) {
+            return CommonResult.errorResponse("用户名和邮箱至少填写一个");
+        }
+
+        if (StrUtil.isNotBlank(username) && (username.length() < 4 || username.length() > 20)) {
+            return CommonResult.errorResponse("用户名长度应为4-20位");
+        }
+        if (StrUtil.isNotBlank(email) && !Validator.isEmail(email)) {
+            return CommonResult.errorResponse("邮箱格式错误");
+        }
+
+        CheckUsernameOrEmailVO vo = new CheckUsernameOrEmailVO();
+        if (StrUtil.isNotBlank(username)) {
+            vo.setUsernameExists(userInfoService.count(
+                    new QueryWrapper<UserInfo>().eq("username", username)) > 0);
+        }
+        if (StrUtil.isNotBlank(email)) {
+            vo.setEmailExists(userInfoService.count(
+                    new QueryWrapper<UserInfo>().eq("email", email)) > 0);
+        }
+        return CommonResult.successResponse(vo);
     }
 
     public CommonResult<RegisterCodeVO> getRegisterCode(String email) {
