@@ -18,6 +18,7 @@ public class TagClassification implements Serializable {
     private Long id;
     private String name;
     private String oj;
+    @TableField("`rank`")
     private Integer rank;
 
     @TableField(fill = FieldFill.INSERT)
