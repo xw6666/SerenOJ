@@ -12,17 +12,10 @@ import org.apache.shiro.web.util.WebUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.method.HandlerMethod;
-import org.springframework.web.servlet.HandlerExecutionChain;
-import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-import org.springframework.web.servlet.support.RequestContextUtils;
-import top.wjr.serenoj.annotation.AnonApi;
 import top.wjr.serenoj.common.result.CommonResult;
 import top.wjr.serenoj.common.result.ResultStatus;
 import top.wjr.serenoj.utils.JwtUtils;
 import top.wjr.serenoj.utils.RedisUtils;
-import top.wjr.serenoj.utils.ServiceContextUtils;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -124,39 +117,12 @@ public class JwtFilter extends AuthenticatingFilter {
     }
 
     private boolean isAnonApi(HttpServletRequest request) {
+        String contextPath = request.getContextPath();
         String requestUri = request.getRequestURI();
-        if (ANON_API_PATHS.contains(requestUri)) {
-            return true;
+        if (StrUtil.isNotBlank(contextPath) && requestUri.startsWith(contextPath)) {
+            requestUri = requestUri.substring(contextPath.length());
         }
-
-        try {
-            WebApplicationContext ctx = RequestContextUtils.findWebApplicationContext(request);
-            if (ctx == null) {
-                log.warn("No WebApplicationContext found when resolving request: {}", requestUri);
-                return false;
-            }
-
-            RequestMappingHandlerMapping mapping = ctx.getBean(
-                    "requestMappingHandlerMapping", RequestMappingHandlerMapping.class);
-            HandlerExecutionChain handlerExecutionChain = mapping.getHandler(request);
-            if (handlerExecutionChain == null) {
-                return false;
-            }
-
-            Object handler = handlerExecutionChain.getHandler();
-            if (!(handler instanceof HandlerMethod)) {
-                return false;
-            }
-
-            HandlerMethod handlerMethod = (HandlerMethod) handler;
-            AnonApi anonApi = ServiceContextUtils.getAnnotation(handlerMethod.getMethod(),
-                    handlerMethod.getBeanType(),
-                    AnonApi.class);
-            return anonApi != null;
-        } catch (Exception e) {
-            log.warn("Failed to resolve handler for request: {}", requestUri, e);
-            return false;
-        }
+        return ANON_API_PATHS.contains(requestUri);
     }
 
     private String resolveToken(HttpServletRequest request) {

@@ -37,6 +37,7 @@ if %errorlevel% neq 0 (
 
 echo.
 echo [4/4] Kill old process and restart...
+echo Stopping old app...
 ssh %SERVER% "pkill -f '[s]erenoj-1.0.0.jar' 2>/dev/null || true; pkill -f '[s]pring-boot:run' 2>/dev/null || true; pkill -f '[t]op.wjr.serenoj.SerenOJApplication' 2>/dev/null || true"
 if %errorlevel% neq 0 (
     echo [ERROR] failed to stop old process
@@ -44,6 +45,7 @@ if %errorlevel% neq 0 (
     exit /b %errorlevel%
 )
 
+echo Waiting for port 8080 to be released...
 ssh %SERVER% "bash -lc 'for i in {1..20}; do if ! ss -ltnp | grep -q :8080; then exit 0; fi; sleep 1; done; echo [ERROR] port 8080 is still in use before restart; exit 1'"
 if %errorlevel% neq 0 (
     echo [ERROR] port 8080 still in use before restart
@@ -51,13 +53,15 @@ if %errorlevel% neq 0 (
     exit /b %errorlevel%
 )
 
-ssh %SERVER% "cd %PROJECT_DIR% && nohup java -jar %APP_JAR% > /tmp/serenoj.log 2>&1 < /dev/null &"
+echo Starting new app...
+ssh %SERVER% "cd %PROJECT_DIR% && setsid -f java -jar %APP_JAR% > /tmp/serenoj.log 2>&1 < /dev/null"
 if %errorlevel% neq 0 (
     echo [ERROR] failed to start app
     pause
     exit /b %errorlevel%
 )
 
+echo Waiting for app to listen on 8080...
 ssh %SERVER% "bash -lc 'for i in {1..30}; do if ss -ltnp | grep -q :8080; then exit 0; fi; sleep 1; done; echo [ERROR] app did not listen on 8080; tail -n 50 /tmp/serenoj.log; exit 1'"
 if %errorlevel% neq 0 (
     echo [ERROR] app startup check failed
