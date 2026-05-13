@@ -42,7 +42,10 @@ public class JwtFilter extends AuthenticatingFilter {
             "/api/apply-reset-password",
             "/api/reset-password",
             "/api/get-languages",
-            "/api/get-tag-list"
+            "/api/get-tag-list",
+            "/api/get-problem-list",
+            "/api/get-problem-detail",
+            "/api/get-random-problem"
     )));
 
     @Autowired
