@@ -71,6 +71,14 @@ public class JwtUtils {
         return redisUtils.hasKey(ShiroConstant.SHIRO_TOKEN_KEY + uid);
     }
 
+    public boolean hasToken(String uid, String token) {
+        if (uid == null || token == null) {
+            return false;
+        }
+        Object currentToken = redisUtils.get(ShiroConstant.SHIRO_TOKEN_KEY + uid);
+        return token.equals(currentToken);
+    }
+
     public boolean isTokenExpired(Date expiration) {
         return expiration.before(new Date());
     }

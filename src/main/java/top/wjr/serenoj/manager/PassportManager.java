@@ -3,8 +3,11 @@ package top.wjr.serenoj.manager;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.crypto.SecureUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import org.apache.shiro.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import top.wjr.serenoj.common.result.CommonResult;
@@ -36,6 +39,12 @@ public class PassportManager {
     @Autowired
     private JwtUtils jwtUtils;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Value("${serenoj.web.register:true}")
+    private boolean registerEnabled;
+
     public CommonResult<UserInfoVO> login(LoginDTO loginDto, HttpServletResponse response, HttpServletRequest request) {
         QueryWrapper<UserInfo> wrapper = new QueryWrapper<>();
         wrapper.eq("username", loginDto.getUsername());
@@ -43,7 +52,7 @@ public class PassportManager {
         if (user == null) {
             return CommonResult.errorResponse("用户名或密码错误");
         }
-        if (!user.getPassword().equals(SecureUtil.md5(loginDto.getPassword()))) {
+        if (!matchesPassword(loginDto.getPassword(), user)) {
             return CommonResult.errorResponse("用户名或密码错误");
         }
         if (user.getStatus() == 1) {
@@ -67,6 +76,10 @@ public class PassportManager {
 
     @Transactional(rollbackFor = Exception.class)
     public CommonResult<Void> register(RegisterDTO registerDto) {
+        if (!registerEnabled) {
+            return CommonResult.errorResponse("当前系统暂未开放注册！");
+        }
+
         QueryWrapper<UserInfo> wrapper = new QueryWrapper<>();
         wrapper.eq("username", registerDto.getUsername()).or().eq("email", registerDto.getEmail());
         long count = userInfoService.count(wrapper);
@@ -76,7 +89,7 @@ public class PassportManager {
         
         UserInfo userInfo = new UserInfo();
         userInfo.setUsername(registerDto.getUsername());
-        userInfo.setPassword(SecureUtil.md5(registerDto.getPassword()));
+        userInfo.setPassword(passwordEncoder.encode(registerDto.getPassword()));
         userInfo.setEmail(registerDto.getEmail());
         userInfo.setNickname(registerDto.getUsername());
         userInfoService.save(userInfo);
@@ -118,5 +131,24 @@ public class PassportManager {
             SecurityUtils.getSubject().logout();
         }
         return CommonResult.successResponse("登出成功");
+    }
+
+    private boolean matchesPassword(String rawPassword, UserInfo user) {
+        String storedPassword = user.getPassword();
+        if (storedPassword == null) {
+            return false;
+        }
+
+        if (storedPassword.startsWith("$2a$") || storedPassword.startsWith("$2b$") || storedPassword.startsWith("$2y$")) {
+            return passwordEncoder.matches(rawPassword, storedPassword);
+        }
+
+        boolean legacyMd5Matched = storedPassword.equals(SecureUtil.md5(rawPassword));
+        if (legacyMd5Matched) {
+            UpdateWrapper<UserInfo> updateWrapper = new UpdateWrapper<>();
+            updateWrapper.eq("uuid", user.getUuid()).set("password", passwordEncoder.encode(rawPassword));
+            userInfoService.update(updateWrapper);
+        }
+        return legacyMd5Matched;
     }
 }

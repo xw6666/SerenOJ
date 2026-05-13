@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import top.wjr.serenoj.shiro.AccountRealm;
 import top.wjr.serenoj.shiro.JwtFilter;
 import top.wjr.serenoj.shiro.ShiroCacheManager;
@@ -34,8 +36,13 @@ public class ShiroConfig {
     @Autowired
     private RedisUtils redisUtils;
 
-    @Value("${hoj.jwt.expire:86400}")
+    @Value("${serenoj.jwt.expire:86400}")
     private long expire;
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Bean
     public FilterRegistrationBean<JwtFilter> defer(JwtFilter jwtFilter) {

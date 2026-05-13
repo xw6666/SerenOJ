@@ -29,6 +29,9 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -38,10 +41,10 @@ public class JwtFilter extends AuthenticatingFilter {
 
     private static final String DEFAULT_AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
-    private static final Set<String> ANON_API_PATHS = Set.of(
+    private static final Set<String> ANON_API_PATHS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             "/api/login",
             "/api/register"
-    );
+    )));
 
     @Autowired
     private JwtUtils jwtUtils;
@@ -68,7 +71,7 @@ public class JwtFilter extends AuthenticatingFilter {
                 return true;
             }
             String userId = claim.getSubject();
-            if (!jwtUtils.hasToken(userId)) {
+            if (!jwtUtils.hasToken(userId, jwt)) {
                 return true;
             }
             if (SecurityUtils.getSubject().getPrincipal() == null) {
@@ -106,7 +109,7 @@ public class JwtFilter extends AuthenticatingFilter {
             }
             String userId = claim.getSubject();
 
-            boolean hasToken = jwtUtils.hasToken(userId);
+            boolean hasToken = jwtUtils.hasToken(userId, token);
             if (!hasToken) {
                 return this.onLoginFailure(null,
                         new AuthenticationException("登录状态已失效，请重新登录！"), servletRequest, servletResponse);
@@ -176,15 +179,20 @@ public class JwtFilter extends AuthenticatingFilter {
     private void refreshToken(HttpServletRequest request, HttpServletResponse response, String userId) throws IOException {
         String requestId = UUID.randomUUID().toString();
         boolean locked = redisUtils.getLock(ShiroConstant.SHIRO_TOKEN_LOCK + userId, 20, requestId);
-        if (locked) {
-            String newToken = jwtUtils.generateToken(userId);
-            response.setHeader("Access-Control-Allow-Credentials", "true");
-            response.setHeader("Authorization", newToken); 
-            response.setHeader("Access-Control-Expose-Headers", "Refresh-Token,Authorization,Url-Type"); 
-            response.setHeader("Url-Type", request.getHeader("Url-Type")); 
-            response.setHeader("Refresh-Token", "true"); 
+        try {
+            if (locked) {
+                String newToken = jwtUtils.generateToken(userId);
+                response.setHeader("Access-Control-Allow-Credentials", "true");
+                response.setHeader("Authorization", newToken);
+                response.setHeader("Access-Control-Expose-Headers", "Refresh-Token,Authorization,Url-Type");
+                response.setHeader("Url-Type", request.getHeader("Url-Type"));
+                response.setHeader("Refresh-Token", "true");
+            }
+        } finally {
+            if (locked) {
+                redisUtils.releaseLock(ShiroConstant.SHIRO_TOKEN_LOCK + userId, requestId);
+            }
         }
-        redisUtils.releaseLock(ShiroConstant.SHIRO_TOKEN_LOCK + userId, requestId);
     }
 
 

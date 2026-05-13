@@ -22,39 +22,39 @@ public class UserInfo implements Serializable {
 
     private String password;
 
-    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    @TableField(updateStrategy = FieldStrategy.NOT_NULL)
     private String nickname;
 
-    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    @TableField(updateStrategy = FieldStrategy.NOT_NULL)
     private String school;
 
-    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    @TableField(updateStrategy = FieldStrategy.NOT_NULL)
     private String course;
 
-    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    @TableField(updateStrategy = FieldStrategy.NOT_NULL)
     private String number;
 
-    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    @TableField(updateStrategy = FieldStrategy.NOT_NULL)
     private String gender;
 
-    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    @TableField(updateStrategy = FieldStrategy.NOT_NULL)
     private String realname;
 
     @TableField(exist = false)
     private String cfUsername;
 
-    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    @TableField(updateStrategy = FieldStrategy.NOT_NULL)
     private String github;
 
-    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    @TableField(updateStrategy = FieldStrategy.NOT_NULL)
     private String blog;
 
-    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    @TableField(updateStrategy = FieldStrategy.NOT_NULL)
     private String email;
 
     private String avatar;
 
-    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    @TableField(updateStrategy = FieldStrategy.NOT_NULL)
     private String signature;
 
     private String titleName;

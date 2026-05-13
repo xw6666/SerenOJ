@@ -17,7 +17,7 @@ DROP TABLE IF EXISTS `user_info`;
 CREATE TABLE `user_info` (
   `uuid`        varchar(32)  NOT NULL,
   `username`    varchar(100) NOT NULL           COMMENT '用户名',
-  `password`    varchar(100) NOT NULL           COMMENT '密码(MD5)',
+  `password`    varchar(100) NOT NULL           COMMENT '密码(BCrypt)',
   `nickname`    varchar(100) DEFAULT NULL       COMMENT '昵称',
   `school`      varchar(100) DEFAULT NULL       COMMENT '学校',
   `course`      varchar(100) DEFAULT NULL       COMMENT '专业',
@@ -665,9 +665,9 @@ INSERT INTO `language` (`content_type`, `description`, `name`, `compile_command`
 ('text/x-csrc',   'GCC Inter', 'INTERACTIVE-C',    '/usr/bin/gcc -DONLINE_JUDGE -O2 -w -fmax-errors=3 -std=c11 {src_path} -lm -o {exe_path}',   1, 'ME', 0),
 ('text/x-c++src', 'G++ Inter', 'INTERACTIVE-C++',  '/usr/bin/g++ -DONLINE_JUDGE -O2 -w -fmax-errors=3 -std=c++14 {src_path} -lm -o {exe_path}', 1, 'ME', 0);
 
--- 默认 root 账号 (密码: root123, MD5=ccb7b7673cb9d522c6f7b6d4a2ac1e7d)
+-- 默认 root 账号 (密码: root123, BCrypt)
 INSERT INTO `user_info` (`uuid`, `username`, `password`, `nickname`, `status`) VALUES
-('1', 'root', 'ccb7b7673cb9d522c6f7b6d4a2ac1e7d', '超级管理员', 0);
+('1', 'root', '$2a$12$K906bmODKIEdM5eHHz.r9enhnwpfeEpcqj/JyqU/6faW805U4n18G', '超级管理员', 0);
 
 INSERT INTO `user_role` (`uid`, `role_id`) VALUES ('1', 00000000000000001000);
 
