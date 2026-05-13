@@ -204,7 +204,40 @@ public class PassportManager {
     }
 
     public CommonResult<RegisterCodeVO> getRegisterCode(String email) {
-        return CommonResult.errorResponse("TODO: implement getRegisterCode");
+        if (StrUtil.isBlank(email) || !Validator.isEmail(email)) {
+            return CommonResult.errorResponse("邮箱格式错误");
+        }
+
+        long count = userInfoService.count(new QueryWrapper<UserInfo>().eq("email", email));
+        if (count > 0) {
+            return CommonResult.errorResponse("邮箱已被注册");
+        }
+
+        String limitKey = RedisKeyConstant.REGISTER_CODE_LIMIT_PREFIX + email;
+        if (redisUtils.hasKey(limitKey)) {
+            return CommonResult.errorResponse("验证码发送过于频繁，请稍后再试");
+        }
+
+        String code = generateCode();
+
+        if (StrUtil.isBlank(mailFrom)) {
+            return CommonResult.errorResponse("邮箱服务未配置");
+        }
+        try {
+            sendTextMail(email, "SerenOJ 注册验证码",
+                    "您的验证码是：" + code + "，有效期" + (verifyCodeExpire / 60) + "分钟。");
+        } catch (Exception e) {
+            return CommonResult.errorResponse("验证码发送失败，请检查邮箱配置");
+        }
+
+        String codeKey = RedisKeyConstant.REGISTER_CODE_PREFIX + email;
+        redisUtils.set(codeKey, code, verifyCodeExpire);
+        redisUtils.set(limitKey, "1", sendInterval);
+
+        RegisterCodeVO vo = new RegisterCodeVO();
+        vo.setEmail(email);
+        vo.setExpire((int) verifyCodeExpire);
+        return CommonResult.successResponse(vo, "验证码已发送，请查收邮箱");
     }
 
     public CommonResult<UserInfoVO> changeUserInfo(EditUserInfoDTO dto) {
@@ -296,7 +329,7 @@ public class PassportManager {
 
     private void sendTextMail(String to, String subject, String content) {
         if (StrUtil.isBlank(mailFrom)) {
-            return;
+            throw new RuntimeException("邮箱服务未配置");
         }
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(mailFrom);
