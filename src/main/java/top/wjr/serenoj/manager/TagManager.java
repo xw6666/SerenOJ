@@ -29,7 +29,7 @@ public class TagManager {
         if (oj != null && !oj.isEmpty() && !"All".equalsIgnoreCase(oj)) {
             tcw.eq("oj", oj);
         }
-        tcw.orderByAsc("rank", "id");
+        tcw.orderByAsc("`rank`", "id");
         List<TagClassification> classifications = tagClassificationService.list(tcw);
 
         // Query Tags
@@ -82,7 +82,7 @@ public class TagManager {
         if (oj != null && !oj.isEmpty() && !"ALL".equalsIgnoreCase(oj) && !"All".equalsIgnoreCase(oj)) {
             tcw.eq("oj", oj);
         }
-        tcw.orderByAsc("rank", "id");
+        tcw.orderByAsc("`rank`", "id");
         return tagClassificationService.list(tcw);
     }
 }
