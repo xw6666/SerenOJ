@@ -3,6 +3,9 @@ package top.wjr.serenoj.manager;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import top.wjr.serenoj.common.result.CommonResult;
+import top.wjr.serenoj.pojo.dto.TagClassificationDTO;
+import top.wjr.serenoj.pojo.dto.TagDTO;
 import top.wjr.serenoj.pojo.entity.Tag;
 import top.wjr.serenoj.pojo.entity.TagClassification;
 import top.wjr.serenoj.pojo.vo.TagGroupVO;
@@ -84,5 +87,51 @@ public class TagManager {
         }
         tcw.orderByAsc("`rank`", "id");
         return tagClassificationService.list(tcw);
+    }
+
+    public TagClassification addClassification(TagClassificationDTO dto) {
+        TagClassification tc = new TagClassification();
+        tc.setName(dto.getName());
+        tc.setOj(dto.getOj() != null ? dto.getOj() : "ME");
+        tc.setRank(dto.getRank());
+        tagClassificationService.save(tc);
+        return tc;
+    }
+
+    public void updateClassification(TagClassificationDTO dto) {
+        TagClassification tc = new TagClassification();
+        tc.setId(dto.getId());
+        tc.setName(dto.getName());
+        tc.setOj(dto.getOj() != null ? dto.getOj() : "ME");
+        tc.setRank(dto.getRank());
+        tagClassificationService.updateById(tc);
+    }
+
+    public void deleteClassification(Long tcid) {
+        tagClassificationService.removeById(tcid);
+    }
+
+    public Tag addTag(TagDTO dto) {
+        Tag tag = new Tag();
+        tag.setName(dto.getName());
+        tag.setColor(dto.getColor());
+        tag.setOj(dto.getOj() != null ? dto.getOj() : "ME");
+        tag.setTcid(dto.getTcid());
+        tagService.save(tag);
+        return tag;
+    }
+
+    public void updateTag(TagDTO dto) {
+        Tag tag = new Tag();
+        tag.setId(dto.getId());
+        tag.setName(dto.getName());
+        tag.setColor(dto.getColor());
+        tag.setOj(dto.getOj() != null ? dto.getOj() : "ME");
+        tag.setTcid(dto.getTcid());
+        tagService.updateById(tag);
+    }
+
+    public void deleteTag(Long tid) {
+        tagService.removeById(tid);
     }
 }
