@@ -36,7 +36,11 @@ public class JwtFilter extends AuthenticatingFilter {
     private static final String BEARER_PREFIX = "Bearer ";
     private static final Set<String> ANON_API_PATHS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             "/api/login",
-            "/api/register"
+            "/api/register",
+            "/api/check-username-or-email",
+            "/api/get-register-code",
+            "/api/apply-reset-password",
+            "/api/reset-password"
     )));
 
     @Autowired

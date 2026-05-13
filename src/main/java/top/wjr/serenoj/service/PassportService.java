@@ -1,8 +1,9 @@
 package top.wjr.serenoj.service;
 
 import top.wjr.serenoj.common.result.CommonResult;
-import top.wjr.serenoj.pojo.dto.LoginDTO;
-import top.wjr.serenoj.pojo.dto.RegisterDTO;
+import top.wjr.serenoj.pojo.dto.*;
+import top.wjr.serenoj.pojo.vo.CheckUsernameOrEmailVO;
+import top.wjr.serenoj.pojo.vo.RegisterCodeVO;
 import top.wjr.serenoj.pojo.vo.UserInfoVO;
 
 import javax.servlet.http.HttpServletRequest;
@@ -13,4 +14,10 @@ public interface PassportService {
     CommonResult<Void> register(RegisterDTO registerDto);
     CommonResult<UserInfoVO> getUserInfo();
     CommonResult<Void> logout();
+    CommonResult<CheckUsernameOrEmailVO> checkUsernameOrEmail(CheckUsernameOrEmailDTO dto);
+    CommonResult<RegisterCodeVO> getRegisterCode(String email);
+    CommonResult<UserInfoVO> changeUserInfo(EditUserInfoDTO dto);
+    CommonResult<Void> changePassword(ChangePasswordDTO dto);
+    CommonResult<Void> applyResetPassword(ApplyResetPasswordDTO dto);
+    CommonResult<Void> resetPassword(ResetPasswordDTO dto);
 }

@@ -11,11 +11,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import top.wjr.serenoj.common.result.CommonResult;
+import top.wjr.serenoj.pojo.dto.ApplyResetPasswordDTO;
+import top.wjr.serenoj.pojo.dto.ChangePasswordDTO;
+import top.wjr.serenoj.pojo.dto.CheckUsernameOrEmailDTO;
+import top.wjr.serenoj.pojo.dto.EditUserInfoDTO;
 import top.wjr.serenoj.pojo.dto.LoginDTO;
 import top.wjr.serenoj.pojo.dto.RegisterDTO;
+import top.wjr.serenoj.pojo.dto.ResetPasswordDTO;
 import top.wjr.serenoj.pojo.entity.Role;
 import top.wjr.serenoj.pojo.entity.UserInfo;
 import top.wjr.serenoj.pojo.entity.UserRole;
+import top.wjr.serenoj.pojo.vo.CheckUsernameOrEmailVO;
+import top.wjr.serenoj.pojo.vo.RegisterCodeVO;
 import top.wjr.serenoj.pojo.vo.UserInfoVO;
 import top.wjr.serenoj.service.UserInfoService;
 import top.wjr.serenoj.service.UserRoleService;
@@ -150,5 +157,29 @@ public class PassportManager {
             userInfoService.update(updateWrapper);
         }
         return legacyMd5Matched;
+    }
+
+    public CommonResult<CheckUsernameOrEmailVO> checkUsernameOrEmail(CheckUsernameOrEmailDTO dto) {
+        return CommonResult.errorResponse("TODO: implement checkUsernameOrEmail");
+    }
+
+    public CommonResult<RegisterCodeVO> getRegisterCode(String email) {
+        return CommonResult.errorResponse("TODO: implement getRegisterCode");
+    }
+
+    public CommonResult<UserInfoVO> changeUserInfo(EditUserInfoDTO dto) {
+        return CommonResult.errorResponse("TODO: implement changeUserInfo");
+    }
+
+    public CommonResult<Void> changePassword(ChangePasswordDTO dto) {
+        return CommonResult.errorResponse("TODO: implement changePassword");
+    }
+
+    public CommonResult<Void> applyResetPassword(ApplyResetPasswordDTO dto) {
+        return CommonResult.errorResponse("TODO: implement applyResetPassword");
+    }
+
+    public CommonResult<Void> resetPassword(ResetPasswordDTO dto) {
+        return CommonResult.errorResponse("TODO: implement resetPassword");
     }
 }
