@@ -44,13 +44,16 @@ spring:
     port: 465
     username: ${MAIL_USERNAME:}
     password: ${MAIL_PASSWORD:}
-    protocol: smtps
+    protocol: smtp
     properties:
       mail:
         smtp:
           auth: true
           ssl:
             enable: true
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
   servlet:
     multipart:
       max-file-size: 512MB

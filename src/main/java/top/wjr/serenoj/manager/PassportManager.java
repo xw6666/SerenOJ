@@ -6,6 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,6 +44,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 @Component
+@Slf4j(topic = "serenoj")
 public class PassportManager {
 
     @Autowired
@@ -227,6 +229,7 @@ public class PassportManager {
             sendTextMail(email, "SerenOJ 注册验证码",
                     "您的验证码是：" + code + "，有效期" + (verifyCodeExpire / 60) + "分钟。");
         } catch (Exception e) {
+            log.warn("Failed to send register verification code to {}", email, e);
             return CommonResult.errorResponse("验证码发送失败，请检查邮箱配置");
         }
 
