@@ -40,7 +40,9 @@ public class JwtFilter extends AuthenticatingFilter {
             "/api/check-username-or-email",
             "/api/get-register-code",
             "/api/apply-reset-password",
-            "/api/reset-password"
+            "/api/reset-password",
+            "/api/get-languages",
+            "/api/get-tag-list"
     )));
 
     @Autowired
