@@ -12,8 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.transaction.annotation.Transactional;
 import top.wjr.serenoj.common.result.CommonResult;
 import top.wjr.serenoj.common.result.ResultStatus;
@@ -63,13 +61,7 @@ public class PassportManager {
     private boolean registerEnabled;
 
     @Autowired
-    private JavaMailSender javaMailSender;
-
-    @Autowired
     private RedisUtils redisUtils;
-
-    @Value("${spring.mail.username:}")
-    private String mailFrom;
 
     @Value("${serenoj.web.register-email-verify:true}")
     private boolean registerEmailVerify;
@@ -121,6 +113,11 @@ public class PassportManager {
             return CommonResult.errorResponse("用户名或邮箱已被注册！");
         }
 
+        String codeKey = RedisKeyConstant.REGISTER_CODE_PREFIX + registerDto.getEmail();
+        if (registerEmailVerify && !verifyCode(codeKey, registerDto.getCode())) {
+            return CommonResult.errorResponse("验证码错误或已过期");
+        }
+
         UserInfo userInfo = new UserInfo();
         userInfo.setUsername(registerDto.getUsername());
         userInfo.setPassword(passwordEncoder.encode(registerDto.getPassword()));
@@ -133,6 +130,9 @@ public class PassportManager {
         userRole.setRoleId(1002L); // 1002 is default_user
         userRoleService.save(userRole);
 
+        if (registerEmailVerify) {
+            redisUtils.del(codeKey);
+        }
         return CommonResult.successResponse("注册成功");
     }
 
@@ -221,26 +221,15 @@ public class PassportManager {
         }
 
         String code = generateCode();
-
-        if (StrUtil.isBlank(mailFrom)) {
-            return CommonResult.errorResponse("邮箱服务未配置");
-        }
-        try {
-            sendTextMail(email, "SerenOJ 注册验证码",
-                    "您的验证码是：" + code + "，有效期" + (verifyCodeExpire / 60) + "分钟。");
-        } catch (Exception e) {
-            log.warn("Failed to send register verification code to {}", email, e);
-            return CommonResult.errorResponse("验证码发送失败，请检查邮箱配置");
-        }
-
         String codeKey = RedisKeyConstant.REGISTER_CODE_PREFIX + email;
         redisUtils.set(codeKey, code, verifyCodeExpire);
         redisUtils.set(limitKey, "1", sendInterval);
+        log.info("Register verification code generated. email={}, code={}, expire={}s", email, code, verifyCodeExpire);
 
         RegisterCodeVO vo = new RegisterCodeVO();
         vo.setEmail(email);
         vo.setExpire((int) verifyCodeExpire);
-        return CommonResult.successResponse(vo, "验证码已发送，请查收邮箱");
+        return CommonResult.successResponse(vo, "验证码已生成，请查看服务器日志");
     }
 
     public CommonResult<UserInfoVO> changeUserInfo(EditUserInfoDTO dto) {
@@ -328,18 +317,6 @@ public class PassportManager {
         int bound = (int) Math.pow(10, codeLength);
         int min = (int) Math.pow(10, codeLength - 1);
         return String.valueOf(ThreadLocalRandom.current().nextInt(min, bound));
-    }
-
-    private void sendTextMail(String to, String subject, String content) {
-        if (StrUtil.isBlank(mailFrom)) {
-            throw new RuntimeException("邮箱服务未配置");
-        }
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(mailFrom);
-        message.setTo(to);
-        message.setSubject(subject);
-        message.setText(content);
-        javaMailSender.send(message);
     }
 
     private boolean verifyCode(String key, String code) {
