@@ -10,8 +10,8 @@ spring:
     name: serenoj
   datasource:
     url: jdbc:mysql://localhost:3306/serenoj?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:root}
+    username: ${DB_USERNAME:}
+    password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
     druid:
@@ -69,12 +69,12 @@ mybatis-plus:
 serenoj:
   mode: full                              # full(全功能) | judge(纯判题)
   jwt:
-    secret: ${JWT_SECRET:serenoj-jwt-secret-key-2024}
+    secret: ${JWT_SECRET:dev-only-serenoj-jwt-secret}
     expire: 86400                         # token过期时间(秒) 24h
     refresh-expire: 43200                 # token刷新时间(秒) 12h
     header: Authorization
   judge:
-    token: serenoj-judge-token             # 判题机通信token(预留)
+    token: ${JUDGE_TOKEN:dev-only-judge-token} # 判题机通信token(预留)
     max-task: 4                           # 最大并发判题数
     sandbox-url: http://localhost:5050     # Go-Judge 沙箱地址
   web:

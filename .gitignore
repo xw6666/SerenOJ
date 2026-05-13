@@ -20,6 +20,12 @@ Thumbs.db
 # Config (sensitive)
 application-dev.yml
 application-prod.yml.bak
+.env
+/deploy/*.yml
+/deploy/*.yaml
+/deploy/*.properties
+/src/main/resources/application-local.yml
+/src/main/resources/application-secret.yml
 
 # Temp
 *.tmp

@@ -20,8 +20,8 @@ import java.util.Date;
 @ConfigurationProperties(prefix = "serenoj.jwt")
 public class JwtUtils {
 
-    @Value("${serenoj.jwt.secret:serenoj-jwt-secret-key-2024}")
-    private String secret = "serenoj-jwt-secret-key-2024";
+    @Value("${serenoj.jwt.secret:dev-only-serenoj-jwt-secret}")
+    private String secret = "dev-only-serenoj-jwt-secret";
 
     @Value("${serenoj.jwt.expire:86400}")
     private long expire = 86400;
