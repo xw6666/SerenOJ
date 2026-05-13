@@ -11,8 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.transaction.annotation.Transactional;
 import top.wjr.serenoj.common.result.CommonResult;
+import top.wjr.serenoj.common.result.ResultStatus;
+import top.wjr.serenoj.constant.RedisKeyConstant;
 import top.wjr.serenoj.pojo.dto.ApplyResetPasswordDTO;
 import top.wjr.serenoj.pojo.dto.ChangePasswordDTO;
 import top.wjr.serenoj.pojo.dto.CheckUsernameOrEmailDTO;
@@ -30,10 +34,12 @@ import top.wjr.serenoj.service.UserInfoService;
 import top.wjr.serenoj.service.UserRoleService;
 import top.wjr.serenoj.shiro.AccountProfile;
 import top.wjr.serenoj.utils.JwtUtils;
+import top.wjr.serenoj.utils.RedisUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 @Component
@@ -54,6 +60,30 @@ public class PassportManager {
     @Value("${serenoj.web.register:true}")
     private boolean registerEnabled;
 
+    @Autowired
+    private JavaMailSender javaMailSender;
+
+    @Autowired
+    private RedisUtils redisUtils;
+
+    @Value("${spring.mail.username:}")
+    private String mailFrom;
+
+    @Value("${serenoj.web.register-email-verify:true}")
+    private boolean registerEmailVerify;
+
+    @Value("${serenoj.mail.verify-code-expire:300}")
+    private long verifyCodeExpire;
+
+    @Value("${serenoj.mail.reset-code-expire:600}")
+    private long resetCodeExpire;
+
+    @Value("${serenoj.mail.send-interval:60}")
+    private long sendInterval;
+
+    @Value("${serenoj.mail.code-length:6}")
+    private int codeLength;
+
     public CommonResult<UserInfoVO> login(LoginDTO loginDto, HttpServletResponse response, HttpServletRequest request) {
         QueryWrapper<UserInfo> wrapper = new QueryWrapper<>();
         wrapper.eq("username", loginDto.getUsername());
@@ -72,14 +102,7 @@ public class PassportManager {
         response.setHeader("Authorization", jwt);
         response.setHeader("Access-Control-Expose-Headers", "Authorization");
 
-        UserInfoVO userInfoVO = new UserInfoVO();
-        BeanUtil.copyProperties(user, userInfoVO);
-        userInfoVO.setUid(user.getUuid());
-
-        List<Role> roles = userRoleService.getRolesByUid(user.getUuid());
-        List<String> roleList = roles.stream().map(Role::getRole).collect(Collectors.toList());
-        userInfoVO.setRoleList(roleList);
-
+        UserInfoVO userInfoVO = buildUserInfoVO(user);
         return CommonResult.successResponse(userInfoVO, "登录成功");
     }
 
@@ -122,15 +145,7 @@ public class PassportManager {
             return CommonResult.errorResponse("用户不存在");
         }
 
-        UserInfoVO userInfoVO = new UserInfoVO();
-        BeanUtil.copyProperties(user, userInfoVO);
-        userInfoVO.setUid(user.getUuid());
-
-        List<Role> roles = userRoleService.getRolesByUid(user.getUuid());
-        List<String> roleList = roles.stream().map(Role::getRole).collect(Collectors.toList());
-        userInfoVO.setRoleList(roleList);
-
-        return CommonResult.successResponse(userInfoVO);
+        return CommonResult.successResponse(buildUserInfoVO(user));
     }
 
     public CommonResult<Void> logout() {
@@ -193,11 +208,63 @@ public class PassportManager {
     }
 
     public CommonResult<UserInfoVO> changeUserInfo(EditUserInfoDTO dto) {
-        return CommonResult.errorResponse("TODO: implement changeUserInfo");
+        AccountProfile profile = getCurrentProfile();
+        if (profile == null) {
+            return CommonResult.errorResponse("请先登录", ResultStatus.ACCESS_DENIED);
+        }
+        String uid = profile.getUid();
+
+        UpdateWrapper<UserInfo> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq("uuid", uid);
+        boolean hasUpdate = false;
+
+        if (dto.getNickname() != null) { updateWrapper.set("nickname", dto.getNickname()); hasUpdate = true; }
+        if (dto.getSchool() != null) { updateWrapper.set("school", dto.getSchool()); hasUpdate = true; }
+        if (dto.getCourse() != null) { updateWrapper.set("course", dto.getCourse()); hasUpdate = true; }
+        if (dto.getNumber() != null) { updateWrapper.set("number", dto.getNumber()); hasUpdate = true; }
+        if (dto.getGender() != null) { updateWrapper.set("gender", dto.getGender()); hasUpdate = true; }
+        if (dto.getRealname() != null) { updateWrapper.set("realname", dto.getRealname()); hasUpdate = true; }
+        if (dto.getGithub() != null) { updateWrapper.set("github", dto.getGithub()); hasUpdate = true; }
+        if (dto.getBlog() != null) { updateWrapper.set("blog", dto.getBlog()); hasUpdate = true; }
+        if (dto.getAvatar() != null) { updateWrapper.set("avatar", dto.getAvatar()); hasUpdate = true; }
+        if (dto.getSignature() != null) { updateWrapper.set("signature", dto.getSignature()); hasUpdate = true; }
+
+        if (!hasUpdate) {
+            return CommonResult.errorResponse("没有需要修改的内容");
+        }
+
+        userInfoService.update(updateWrapper);
+
+        UserInfo updatedUser = userInfoService.getById(uid);
+        return CommonResult.successResponse(buildUserInfoVO(updatedUser), "修改成功");
     }
 
     public CommonResult<Void> changePassword(ChangePasswordDTO dto) {
-        return CommonResult.errorResponse("TODO: implement changePassword");
+        AccountProfile profile = getCurrentProfile();
+        if (profile == null) {
+            return CommonResult.errorResponse("请先登录", ResultStatus.ACCESS_DENIED);
+        }
+        String uid = profile.getUid();
+
+        UserInfo user = userInfoService.getById(uid);
+        if (user == null) {
+            return CommonResult.errorResponse("用户不存在");
+        }
+
+        if (!matchesPassword(dto.getOldPassword(), user)) {
+            return CommonResult.errorResponse("旧密码错误");
+        }
+
+        if (dto.getOldPassword().equals(dto.getNewPassword())) {
+            return CommonResult.errorResponse("新密码不能与旧密码相同");
+        }
+
+        UpdateWrapper<UserInfo> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq("uuid", uid).set("password", passwordEncoder.encode(dto.getNewPassword()));
+        userInfoService.update(updateWrapper);
+
+        jwtUtils.cleanToken(uid);
+        return CommonResult.successResponse("密码修改成功，请重新登录");
     }
 
     public CommonResult<Void> applyResetPassword(ApplyResetPasswordDTO dto) {
@@ -206,5 +273,41 @@ public class PassportManager {
 
     public CommonResult<Void> resetPassword(ResetPasswordDTO dto) {
         return CommonResult.errorResponse("TODO: implement resetPassword");
+    }
+
+    private AccountProfile getCurrentProfile() {
+        return (AccountProfile) SecurityUtils.getSubject().getPrincipal();
+    }
+
+    private UserInfoVO buildUserInfoVO(UserInfo user) {
+        UserInfoVO vo = new UserInfoVO();
+        BeanUtil.copyProperties(user, vo);
+        vo.setUid(user.getUuid());
+        List<Role> roles = userRoleService.getRolesByUid(user.getUuid());
+        vo.setRoleList(roles.stream().map(Role::getRole).collect(Collectors.toList()));
+        return vo;
+    }
+
+    private String generateCode() {
+        int bound = (int) Math.pow(10, codeLength);
+        int min = (int) Math.pow(10, codeLength - 1);
+        return String.valueOf(ThreadLocalRandom.current().nextInt(min, bound));
+    }
+
+    private void sendTextMail(String to, String subject, String content) {
+        if (StrUtil.isBlank(mailFrom)) {
+            return;
+        }
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(mailFrom);
+        message.setTo(to);
+        message.setSubject(subject);
+        message.setText(content);
+        javaMailSender.send(message);
+    }
+
+    private boolean verifyCode(String key, String code) {
+        Object savedCode = redisUtils.get(key);
+        return savedCode != null && savedCode.toString().equalsIgnoreCase(code);
     }
 }
