@@ -64,7 +64,7 @@ if %errorlevel% neq 0 (
 
 echo.
 echo [5/8] Building frontend on server...
-ssh %SERVER% "cd %PROJECT_DIR%/%FRONTEND_DIR% && bash -lc '(npm ci --legacy-peer-deps --no-audit --no-fund || npm install --legacy-peer-deps --no-audit --no-fund) && NODE_OPTIONS=--openssl-legacy-provider npm run build'"
+ssh %SERVER% "cd %PROJECT_DIR%/%FRONTEND_DIR% && bash -lc 'npm config set registry https://registry.npmmirror.com && (npm ci --legacy-peer-deps --no-audit --no-fund || npm install --legacy-peer-deps --no-audit --no-fund) && NODE_OPTIONS=--openssl-legacy-provider npm run build'"
 if %errorlevel% neq 0 (
     echo [ERROR] frontend build failed
     pause

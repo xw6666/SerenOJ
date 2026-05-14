@@ -16,7 +16,7 @@ Keep the tracked Spring config files free of real passwords. Put real values onl
 2. Reset `/root/serenoj/project` to `origin/master`.
 3. Upload `deploy\application-prod.yml`.
 4. Install `nodejs` and `npm` with `apt-get` if they are missing on the Ubuntu server.
-5. Run `npm ci --legacy-peer-deps` and `npm run build` in `frontend/`.
+5. Set npm registry to `https://registry.npmmirror.com`, then run `npm ci --legacy-peer-deps` and `npm run build` in `frontend/`.
 6. Copy `frontend/dist` into `src/main/resources/static`.
 7. Build the Spring Boot jar and restart it on port `8080`.
 
