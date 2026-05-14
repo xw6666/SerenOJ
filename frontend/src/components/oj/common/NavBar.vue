@@ -42,6 +42,14 @@
 
           <template v-if="!isAuthenticated">
             <div class="btn-menu">
+              <button
+                type="button"
+                class="theme-toggle"
+                :title="isDarkMode ? 'Light mode' : 'Dark mode'"
+                @click="toggleTheme"
+              >
+                <i :class="isDarkMode ? 'fa fa-sun-o' : 'fa fa-moon-o'"></i>
+              </button>
               <el-button type="primary" size="medium" round @click="handleBtnClick('Login')">
                 {{ $t('m.NavBar_Login') }}
               </el-button>
@@ -57,6 +65,14 @@
             </div>
           </template>
           <template v-else>
+            <button
+              type="button"
+              class="theme-toggle drop-theme-toggle"
+              :title="isDarkMode ? 'Light mode' : 'Dark mode'"
+              @click="toggleTheme"
+            >
+              <i :class="isDarkMode ? 'fa fa-sun-o' : 'fa fa-moon-o'"></i>
+            </button>
             <el-dropdown class="drop-menu" @command="handleRoute" placement="bottom" trigger="hover">
               <span class="el-dropdown-link">
                 {{ userInfo.username }}<i class="el-icon-caret-bottom"></i>
@@ -91,6 +107,9 @@
           <span @click="changeWebLanguage">
             {{ websiteConfig.shortName ? websiteConfig.shortName : 'OJ' }}
           </span>
+          <mu-button icon slot="right" @click="toggleTheme">
+            <i :class="isDarkMode ? 'fa fa-sun-o' : 'fa fa-moon-o'"></i>
+          </mu-button>
           <mu-button flat slot="right" @click="handleBtnClick('Login')" v-show="!isAuthenticated">
             {{ $t('m.NavBar_Login') }}
           </mu-button>
@@ -194,11 +213,13 @@ export default {
       mobileNar: false,
       opendrawer: false,
       openusermenu: false,
+      themeMode: 'light',
       imgUrl: require('@/assets/logo.png'),
     };
   },
   created() {
     this.page_width();
+    this.initThemeMode();
     window.addEventListener('resize', this.onResize);
   },
   mounted() {
@@ -235,6 +256,18 @@ export default {
         language: this.webLanguage === 'zh-CN' ? 'en-US' : 'zh-CN',
       });
     },
+    initThemeMode() {
+      const savedTheme = localStorage.getItem('serenoj-theme-mode');
+      this.applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+    },
+    toggleTheme() {
+      this.applyTheme(this.isDarkMode ? 'light' : 'dark');
+    },
+    applyTheme(mode) {
+      this.themeMode = mode;
+      document.documentElement.classList.toggle('theme-dark', mode === 'dark');
+      localStorage.setItem('serenoj-theme-mode', mode);
+    },
     setHiddenHeaderHeight() {
       if (!this.mobileNar) {
         this.$nextTick(() => {
@@ -258,6 +291,9 @@ export default {
     ]),
     avatar() {
       return this.userInfo.avatar;
+    },
+    isDarkMode() {
+      return this.themeMode === 'dark';
     },
     activeMenuName() {
       const top = this.$route.path.split('/')[1] || 'home';
@@ -328,11 +364,38 @@ export default {
   position: relative;
   margin-top: 16px;
 }
+.theme-toggle {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #d9e2ec;
+  border-radius: 50%;
+  background: #fff;
+  color: #2f80ed;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+.theme-toggle:hover {
+  color: #fff;
+  background: #2f80ed;
+  border-color: #2f80ed;
+  transform: translateY(-1px);
+}
+.drop-theme-toggle {
+  float: right;
+  margin-top: 13px;
+  margin-right: 14px;
+  position: relative;
+}
 .btn-menu {
   font-size: 16px;
   float: right;
   margin-right: 10px;
   margin-top: 10px;
+}
+.btn-menu .theme-toggle {
+  vertical-align: middle;
+  margin-right: 8px;
 }
 .dialog /deep/ .el-dialog__body {
   padding: 20px;

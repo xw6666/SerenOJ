@@ -149,59 +149,68 @@
                   </div>
                   <div class="question-intr">
                     <template v-if="!isCFProblem">
-                      <span>{{ $t('m.Time_Limit') }}锛欳/C++
-                        {{ problemData.problem.timeLimit }}MS锛寋{
-                          $t('m.Other')
-                        }}
-                        {{ problemData.problem.timeLimit * 2 }}MS</span><br />
-                      <span>{{ $t('m.Memory_Limit') }}锛欳/C++
-                        {{ problemData.problem.memoryLimit }}MB锛寋{
-                          $t('m.Other')
-                        }}
-                        {{ problemData.problem.memoryLimit * 2 }}MB</span><br />
+                      <span>
+                        {{ $t('m.Time_Limit') }}: C/C++ {{ problemData.problem.timeLimit }}MS,
+                        {{ $t('m.Other') }} {{ problemData.problem.timeLimit * 2 }}MS
+                      </span>
+                      <br />
+                      <span>
+                        {{ $t('m.Memory_Limit') }}: C/C++ {{ problemData.problem.memoryLimit }}MB,
+                        {{ $t('m.Other') }} {{ problemData.problem.memoryLimit * 2 }}MB
+                      </span>
+                      <br />
                     </template>
 
                     <template v-else>
-                      <span>{{ $t('m.Time_Limit') }}锛歿{
-                          problemData.problem.timeLimit
-                        }}MS</span>
+                      <span>{{ $t('m.Time_Limit') }}: {{ problemData.problem.timeLimit }}MS</span>
                       <br />
-                      <span>{{ $t('m.Memory_Limit') }}锛歿{
-                          problemData.problem.memoryLimit
-                        }}MB</span><br />
+                      <span>{{ $t('m.Memory_Limit') }}: {{ problemData.problem.memoryLimit }}MB</span>
+                      <br />
                     </template>
                     <template v-if="problemData.problem.difficulty != null">
-                      <span>{{ $t('m.Level') }}锛?span
+                      <span>
+                        {{ $t('m.Level') }}:
+                        <span
                           class="el-tag el-tag--small"
                           :style="getLevelColor(problemData.problem.difficulty)"
-                        >{{
+                        >
+                          {{
                             getLevelName(problemData.problem.difficulty)
-                          }}</span></span>
+                          }}
+                        </span>
+                      </span>
                       <br />
                     </template>
                     <template v-if="problemData.problem.type == 1">
-                      <span>{{ $t('m.Score') }}锛歿{ problemData.problem.ioScore }}
-                      </span>
+                      <span>{{ $t('m.Score') }}: {{ problemData.problem.ioScore }}</span>
                       <span
                         v-if="!contestID"
                         style="margin-left:5px;"
                       >
-                        {{ $t('m.OI_Rank_Score') }}锛歿{
+                        {{ $t('m.OI_Rank_Score') }}:
+                        {{
                           calcOIRankScore(
                             problemData.problem.ioScore,
                             problemData.problem.difficulty
                           )
-                        }}(0.1*{{ $t('m.Score') }}+2*{{ $t('m.Level') }})
+                        }}
+                        (0.1*{{ $t('m.Score') }}+2*{{ $t('m.Level') }})
                       </span>
                       <br />
                     </template>
 
                     <template v-if="problemData.problem.author">
-                      <span>{{ $t('m.Created') }}锛?el-link
+                      <span>
+                        {{ $t('m.Created') }}:
+                        <el-link
                           type="info"
                           class="author-name"
                           @click="goUserHome(problemData.problem.author)"
-                        >{{ problemData.problem.author }}</el-link></span><br />
+                        >
+                          {{ problemData.problem.author }}
+                        </el-link>
+                      </span>
+                      <br />
                     </template>
                   </div>
                 </div>
@@ -390,16 +399,21 @@
                         <template v-else-if="row.score != null">
                           <el-tooltip placement="top">
                             <div slot="content">
-                              {{ $t('m.Problem_Score') }}锛歿{
+                              {{ $t('m.Problem_Score') }}:
+                              {{
                                 row.score != null ? row.score : $t('m.Unknown')
-                              }}<br />{{ $t('m.OI_Rank_Score') }}锛歿{
+                              }}
+                              <br />
+                              {{ $t('m.OI_Rank_Score') }}:
+                              {{
                                 row.oiRankScore != null
                                   ? row.oiRankScore
                                   : $t('m.Unknown')
-                              }}<br />
+                              }}
+                              <br />
                               {{
                                 $t('m.OI_Rank_Calculation_Rule')
-                              }}锛?score*0.1+difficulty*2)
+                              }}: score*0.1+difficulty*2
                             </div>
                             <el-tag
                               effect="plain"

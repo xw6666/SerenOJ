@@ -195,6 +195,57 @@ body {
   color: #495060 !important;
   font-size: 12px !important;
 }
+html.theme-dark body {
+  background-color: #0f172a !important;
+  color: #dbeafe !important;
+}
+html.theme-dark #oj-content,
+html.theme-dark .full-height {
+  background-color: #0f172a !important;
+}
+html.theme-dark #header,
+html.theme-dark .el-menu.el-menu--horizontal,
+html.theme-dark footer {
+  background: #111827 !important;
+  border-color: #253247 !important;
+  color: #dbeafe !important;
+}
+html.theme-dark .el-menu--horizontal > .el-menu-item {
+  background: transparent !important;
+  color: #cbd5e1 !important;
+}
+html.theme-dark .el-menu--horizontal > .el-menu-item:hover,
+html.theme-dark .el-menu--horizontal > .el-menu-item.is-active {
+  background: rgba(59, 130, 246, 0.12) !important;
+  color: #60a5fa !important;
+}
+html.theme-dark .el-card,
+html.theme-dark .el-dialog,
+html.theme-dark .el-dropdown-menu,
+html.theme-dark .el-input__inner,
+html.theme-dark .el-textarea__inner,
+html.theme-dark .vxe-table,
+html.theme-dark .markdown-body {
+  background-color: #111827 !important;
+  border-color: #253247 !important;
+  color: #dbeafe !important;
+}
+html.theme-dark .el-table,
+html.theme-dark .el-table th,
+html.theme-dark .el-table tr,
+html.theme-dark .vxe-table--body-wrapper {
+  background-color: #111827 !important;
+  color: #dbeafe !important;
+}
+html.theme-dark .theme-toggle {
+  background: #1f2937 !important;
+  border-color: #334155 !important;
+  color: #facc15 !important;
+}
+html.theme-dark .theme-toggle:hover {
+  background: #facc15 !important;
+  color: #111827 !important;
+}
 code,
 kbd,
 pre,
