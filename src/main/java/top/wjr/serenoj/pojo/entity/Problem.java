@@ -1,6 +1,8 @@
 package top.wjr.serenoj.pojo.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -45,6 +47,8 @@ public class Problem implements Serializable {
     private Boolean isUploadCase;
     private String caseVersion;
     private String modifiedUser;
+    @JsonProperty("isFileIO")
+    @JsonAlias("isFileIo")
     private Boolean isFileIo;
     private String ioReadFileName;
     private String ioWriteFileName;

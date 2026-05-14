@@ -16,6 +16,8 @@ public class ProblemListVO {
     private Integer type;
     private Integer auth;
     private Date gmtCreate;
+    private Date gmtModified;
+    private String modifiedUser;
     private Integer total;
     private Integer ac;
     private Integer wa;

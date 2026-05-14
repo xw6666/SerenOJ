@@ -6,7 +6,9 @@ import top.wjr.serenoj.common.result.CommonResult;
 import top.wjr.serenoj.manager.ProblemManager;
 import top.wjr.serenoj.manager.TagManager;
 import top.wjr.serenoj.pojo.dto.ProblemListQueryDTO;
+import top.wjr.serenoj.pojo.entity.CodeTemplate;
 import top.wjr.serenoj.pojo.entity.Language;
+import top.wjr.serenoj.pojo.entity.Tag;
 import top.wjr.serenoj.pojo.vo.PageVO;
 import top.wjr.serenoj.pojo.vo.ProblemDetailVO;
 import top.wjr.serenoj.pojo.vo.ProblemListVO;
@@ -50,6 +52,21 @@ public class ProblemController {
             return CommonResult.errorResponse("题目不存在");
         }
         return CommonResult.successResponse(vo);
+    }
+
+    @GetMapping("/get-problem-tags")
+    public CommonResult<List<Tag>> getProblemTags(@RequestParam Long pid) {
+        return CommonResult.successResponse(problemManager.getProblemTags(pid));
+    }
+
+    @GetMapping("/get-problem-languages")
+    public CommonResult<List<Language>> getProblemLanguages(@RequestParam Long pid) {
+        return CommonResult.successResponse(problemManager.getProblemLanguages(pid));
+    }
+
+    @GetMapping("/get-problem-code-template")
+    public CommonResult<List<CodeTemplate>> getProblemCodeTemplate(@RequestParam Long pid) {
+        return CommonResult.successResponse(problemManager.getProblemCodeTemplate(pid));
     }
 
     @GetMapping("/get-random-problem")
