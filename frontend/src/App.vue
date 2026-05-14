@@ -9,111 +9,24 @@
         </transition>
       </div>
       <footer v-if="showFooter" class="fix-to-bottom">
-        <div class="mundb-footer">
-          <el-row>
-            <el-col
-              :md="6"
-              :xs="24"
+        <div class="seren-footer">
+          <div class="seren-footer__main">
+            <div class="seren-footer__brand">Seren OJ</div>
+            <button
+              type="button"
+              class="seren-footer__link"
+              @click="goRoute('/status')"
             >
-              <h1>{{ websiteConfig.name }}</h1>
-              <span
-                style="line-height:25px"
-                v-html="websiteConfig.description"
-                v-katex
-                v-highlight
-              >
-              </span>
-            </el-col>
-            <el-col class="hr-none">
-              <el-divider></el-divider>
-            </el-col>
-            <el-col
-              :md="6"
-              :xs="24"
-            >
-              <h1>{{ $t('m.Service') }}</h1>
-              <p>
-                <a @click="goRoute('/status')">{{ $t('m.Judging_Queue') }}</a>
-              </p>
-              <p>
-                <a @click="goRoute('/developer')">{{ $t('m.System_Info') }}</a>
-              </p>
-            </el-col>
-            <el-col class="hr-none">
-              <el-divider></el-divider>
-            </el-col>
-            <el-col
-              :md="6"
-              :xs="24"
-            >
-              <h1>{{ $t('m.Development') }}</h1>
-              <p class="mb-1">
-                <a
-                  href="https://gitee.com/himitzh0730/hoj"
-                  target="_blank"
-                >{{
-                  $t('m.Open_Source')
-                }}</a>
-              </p>
-              <p class="mb-1"><a @click="goRoute('/#')">API</a></p>
-            </el-col>
-            <el-col class="hr-none">
-              <el-divider></el-divider>
-            </el-col>
-            <el-col
-              :md="6"
-              :xs="24"
-            >
-              <h1>{{ $t('m.Support') }}</h1>
-              <p>
-                <i
-                  class="fa fa-info-circle"
-                  aria-hidden="true"
-                ></i><a @click="goRoute('/introduction')"> {{ $t('m.NavBar_About') }}</a>
-              </p>
-              <p>
-                <i class="el-icon-document"></i>
-                <a
-                  href="https://docs.hdoi.cn"
-                  target="_blank"
-                > {{ $t('m.Help') }}</a>
-              </p>
-            </el-col>
-          </el-row>
-        </div>
-        <div class="mundb-footer">
-          <a
-            style="color:#1E9FFF"
-            :href="websiteConfig.recordUrl"
-            target="_blank"
-          >{{ websiteConfig.recordName }}</a>
+              {{ $t('m.Judging_Queue') }}
+            </button>
+          </div>
+          <div class="seren-footer__powered">
           Powered by
           <a
             :href="websiteConfig.projectUrl"
-            style="color:#1E9FFF"
             target="_blank"
           >{{ websiteConfig.projectName }}</a>
-          <span style="margin-left:10px">
-            <el-dropdown
-              @command="changeWebLanguage"
-              placement="top"
-            >
-              <span class="el-dropdown-link">
-                <i
-                  class="fa fa-globe"
-                  aria-hidden="true"
-                >
-                  {{ getLanguageLabelByValue(this.webLanguage) }}</i><i class="el-icon-arrow-up el-icon--right"></i>
-              </span>
-              <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item 
-                  v-for="(lang, index) in languages"
-                  :key="index"
-                  :command="lang.value">{{ lang.label }}
-              </el-dropdown-item>
-              </el-dropdown-menu>
-            </el-dropdown>
-          </span>
+          </div>
         </div>
       </footer>
     </div>
@@ -133,7 +46,6 @@ import { mapActions, mapState, mapGetters } from "vuex";
 import { LOGO, MOTTO } from "@/common/logo";
 import storage from "@/common/storage";
 import utils from "@/common/utils";
-import { languages, getLangLabelByValue } from '@/i18n';
 export default {
   name: "app-content",
   components: {
@@ -143,7 +55,6 @@ export default {
     return {
       isAdminView: false,
       showFooter: true,
-      languages:[],
     };
   },
   methods: {
@@ -152,9 +63,6 @@ export default {
       this.$router.push({
         path: path,
       });
-    },
-    changeWebLanguage(language) {
-      this.$store.commit("changeWebLanguage", { language: language });
     },
     autoChangeLanguge() {
       /**
@@ -221,9 +129,6 @@ export default {
           }
         }
       }
-    },
-    getLanguageLabelByValue(value){
-      return getLangLabelByValue(value);
     }
   },
   watch: {
@@ -246,7 +151,7 @@ export default {
   },
   computed: {
     ...mapState(["websiteConfig"]),
-    ...mapGetters(["webLanguage", "token", "isAuthenticated"]),
+    ...mapGetters(["token", "isAuthenticated"]),
   },
   created: function () {
     this.$nextTick(function () {
@@ -269,7 +174,6 @@ export default {
     window.addEventListener("visibilitychange", this.autoRefreshUserInfo);
   },
   mounted() {
-    this.languages = languages;
     console.log(LOGO);
     console.log(MOTTO);
     this.autoChangeLanguge();
@@ -726,37 +630,68 @@ a:hover {
 }
 
 footer {
-  color: #555 !important;
-  background-color: #fff;
+  color: #435062 !important;
+  background: linear-gradient(180deg, #fbfdff 0%, #ffffff 100%);
+  border-top: 1px solid #e8eef5;
+  box-shadow: 0 -10px 30px rgba(31, 45, 61, 0.04);
   text-align: center;
 }
 footer a {
-  color: #555;
+  color: #1e88ff;
 }
 footer a:hover {
-  color: #409eff;
+  color: #0967d2;
   text-decoration: none;
 }
-footer h1 {
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC,
-    Hiragino Sans GB, Microsoft YaHei, Helvetica Neue, Helvetica, Arial,
-    sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;
-  font-weight: 300;
-  color: #3d3d3d;
-  line-height: 1.1;
-  font-size: 1.5rem;
-}
-
-.mundb-footer {
-  padding: 1rem 2.5rem;
+.seren-footer {
+  padding: 28px 24px 20px;
   width: 100%;
-  font-weight: 400;
-  font-size: 1rem;
-  line-height: 1;
 }
-@media (min-width: 768px) {
-  .hr-none {
-    display: none !important;
+.seren-footer__main {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(245, 248, 252, 0.9);
+  border: 1px solid #edf2f7;
+}
+.seren-footer__brand {
+  color: #243145;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.seren-footer__link {
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 16px;
+  background: #1e88ff;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+.seren-footer__link:hover {
+  background: #0967d2;
+  transform: translateY(-1px);
+}
+.seren-footer__powered {
+  margin-top: 16px;
+  color: #7a8798;
+  font-size: 14px;
+}
+@media (max-width: 640px) {
+  .seren-footer {
+    padding: 22px 16px 18px;
+  }
+  .seren-footer__main {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 280px;
   }
 }
 .el-empty {
