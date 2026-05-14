@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import top.wjr.serenoj.common.result.CommonResult;
 
+import java.io.IOException;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.util.stream.Collectors;
@@ -32,5 +33,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public CommonResult<Void> handleIllegalArgument(IllegalArgumentException e) {
         return CommonResult.errorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler(IOException.class)
+    public CommonResult<Void> handleIOException(IOException e) {
+        return CommonResult.errorResponse("文件处理失败：" + e.getMessage());
     }
 }
