@@ -7,6 +7,8 @@ echo ============================================
 set SERVER=oj
 set PROJECT_DIR=/root/serenoj/project
 set APP_JAR=target/serenoj-1.0.0.jar
+set FRONTEND_DIR=frontend
+set STATIC_DIR=src/main/resources/static
 set LOCAL_CONFIG=deploy\application-prod.yml
 set REMOTE_CONFIG_DIR=/root/serenoj/config
 
@@ -18,7 +20,7 @@ if not exist "%LOCAL_CONFIG%" (
 )
 
 echo.
-echo [1/5] Pushing code to server...
+echo [1/8] Pushing code to server...
 git push %SERVER% master
 if %errorlevel% neq 0 (
     echo [ERROR] git push failed
@@ -27,7 +29,7 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo [2/5] Pulling code on server...
+echo [2/8] Pulling code on server...
 ssh %SERVER% "cd %PROJECT_DIR% && git fetch origin master && git reset --hard origin/master"
 if %errorlevel% neq 0 (
     echo [ERROR] git sync failed
@@ -36,7 +38,7 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo [3/5] Syncing production config...
+echo [3/8] Syncing production config...
 ssh %SERVER% "mkdir -p %REMOTE_CONFIG_DIR% && chmod 700 %REMOTE_CONFIG_DIR%"
 if %errorlevel% neq 0 (
     echo [ERROR] failed to create remote config directory
@@ -52,7 +54,34 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo [4/5] Compiling on server...
+echo [4/8] Checking frontend build tools on server...
+ssh %SERVER% "bash -lc 'if command -v node >/dev/null 2>&1 && command -v npm >/dev/null 2>&1; then node -v && npm -v; else echo Installing nodejs and npm...; apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs npm; fi'"
+if %errorlevel% neq 0 (
+    echo [ERROR] failed to prepare node/npm on server
+    pause
+    exit /b %errorlevel%
+)
+
+echo.
+echo [5/8] Building frontend on server...
+ssh %SERVER% "cd %PROJECT_DIR%/%FRONTEND_DIR% && bash -lc '(npm ci --legacy-peer-deps --no-audit --no-fund || npm install --legacy-peer-deps --no-audit --no-fund) && NODE_OPTIONS=--openssl-legacy-provider npm run build'"
+if %errorlevel% neq 0 (
+    echo [ERROR] frontend build failed
+    pause
+    exit /b %errorlevel%
+)
+
+echo.
+echo [6/8] Packaging frontend into backend static resources...
+ssh %SERVER% "cd %PROJECT_DIR% && bash -lc 'test -d %FRONTEND_DIR%/dist || { echo [ERROR] frontend dist not found; exit 1; }; rm -rf %STATIC_DIR% && mkdir -p %STATIC_DIR% && cp -a %FRONTEND_DIR%/dist/. %STATIC_DIR%/'"
+if %errorlevel% neq 0 (
+    echo [ERROR] failed to package frontend static resources
+    pause
+    exit /b %errorlevel%
+)
+
+echo.
+echo [7/8] Compiling backend on server...
 ssh %SERVER% "cd %PROJECT_DIR% && mvn -q -DskipTests clean package"
 if %errorlevel% neq 0 (
     echo [ERROR] mvn package failed
@@ -61,7 +90,7 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo [5/5] Kill old process and restart...
+echo [8/8] Kill old process and restart...
 echo Stopping old app...
 ssh %SERVER% "pkill -f '[s]erenoj-1.0.0.jar' 2>/dev/null || true; pkill -f '[s]pring-boot:run' 2>/dev/null || true; pkill -f '[t]op.wjr.serenoj.SerenOJApplication' 2>/dev/null || true"
 if %errorlevel% neq 0 (
@@ -97,7 +126,8 @@ if %errorlevel% neq 0 (
 echo.
 echo ============================================
 echo   Deploy complete!
-echo   App running on http://142.93.85.237:8080
+echo   Frontend: http://142.93.85.237:8080/
+echo   Backend API: http://142.93.85.237:8080/api/...
 echo   View logs: ssh %SERVER% "tail -f /tmp/serenoj.log"
 echo ============================================
 pause
