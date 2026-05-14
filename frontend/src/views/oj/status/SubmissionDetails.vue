@@ -373,7 +373,6 @@ export default {
       this.isMobile = true;
     }
     this.getSubmission();
-    this.getAllCaseResult();
     this.JUDGE_STATUS = Object.assign({}, JUDGE_STATUS);
     this.JUDGE_STATUS_RESERVE = Object.assign({}, JUDGE_STATUS_RESERVE);
     this.JUDGE_CASE_MODE = Object.assign({}, JUDGE_CASE_MODE);

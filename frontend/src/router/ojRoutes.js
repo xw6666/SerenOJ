@@ -4,6 +4,8 @@ import Setting from '@/views/oj/user/Setting.vue'
 import ProblemList from '@/views/oj/problem/ProblemList.vue'
 import Logout from '@/views/oj/user/Logout.vue'
 import Problem from '@/views/oj/problem/Problem.vue'
+import SubmissionList from '@/views/oj/status/SubmissionList.vue'
+import SubmissionDetails from '@/views/oj/status/SubmissionDetails.vue'
 import ComingSoon from '@/views/oj/ComingSoon.vue'
 import NotFound from '@/views/404.vue'
 
@@ -53,23 +55,14 @@ const ojRoutes = [
   {
     path: '/status',
     name: 'SubmissionList',
-    component: ComingSoon,
-    meta: {
-      title: 'Status',
-      moduleName: 'Submission Status Coming Soon',
-      description: 'Submission and judging records will be enabled with Phase 4.'
-    }
+    component: SubmissionList,
+    meta: { title: 'Status' }
   },
   {
     path: '/submission-detail/:submitID',
     name: 'SubmissionDetails',
-    component: ComingSoon,
-    meta: {
-      title: 'Submission Details',
-      requireAuth: true,
-      moduleName: 'Submission Details Coming Soon',
-      description: 'Submission details depend on the Phase 4 judge record APIs.'
-    }
+    component: SubmissionDetails,
+    meta: { title: 'Submission Details', requireAuth: true }
   },
   {
     path: '/reset-password',

@@ -45,7 +45,8 @@ public class JwtFilter extends AuthenticatingFilter {
             "/api/get-tag-list",
             "/api/get-problem-list",
             "/api/get-problem-detail",
-            "/api/get-random-problem"
+            "/api/get-random-problem",
+            "/api/get-submission-list"
     )));
 
     @Autowired
